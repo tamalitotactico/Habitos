@@ -12,9 +12,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user) router.replace("/login");
+    else if (!user.onboardedAt) router.replace("/onboarding");
   }, [user, router]);
 
-  if (!user) return null;
+  if (!user || !user.onboardedAt) return null;
 
   return (
     <div className="flex h-screen bg-background">

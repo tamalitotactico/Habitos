@@ -23,6 +23,11 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const onboardSchema = z.object({
+  goals: z.array(z.string().min(1)).min(1, "Select at least one goal"),
+  availableMinutesPerDay: z.number().int().min(5).max(480),
+});
+
 export const authController = {
   async register(req: Request, res: Response, next: NextFunction) {
     try {
@@ -74,6 +79,16 @@ export const authController = {
   async me(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const user = await authService.me(req.userId!);
+      res.json({ user });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async onboard(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { goals, availableMinutesPerDay } = onboardSchema.parse(req.body);
+      const user = await authService.onboard(req.userId!, goals, availableMinutesPerDay);
       res.json({ user });
     } catch (err) {
       next(err);

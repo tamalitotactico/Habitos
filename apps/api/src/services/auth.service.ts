@@ -73,4 +73,10 @@ export const authService = {
     if (!user) throw new AppError(404, "User not found");
     return toPublicUser(user);
   },
+
+  async onboard(userId: string, goals: string[], availableMinutesPerDay: number) {
+    const settings = JSON.stringify({ goals, availableMinutesPerDay });
+    const user = await userRepository.saveOnboarding(userId, settings);
+    return toPublicUser(user);
+  },
 };

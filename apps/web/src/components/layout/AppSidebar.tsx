@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ListChecks, Timer, BarChart2, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, ListChecks, Timer, BarChart2, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ const nav = [
   { href: "/habits", label: "Hábitos", icon: ListChecks },
   { href: "/tracking", label: "Tiempo", icon: Timer },
   { href: "/analytics", label: "Análisis", icon: BarChart2 },
-  { href: "/settings", label: "Ajustes", icon: Settings },
+  { href: "/profile", label: "Perfil", icon: User },
 ];
 
 export function AppSidebar() {

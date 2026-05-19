@@ -27,4 +27,15 @@ export const userRepository = {
       data: { onboardedAt: new Date() },
     });
   },
+
+  saveOnboarding(id: string, settings: string) {
+    return db.user.update({
+      where: { id },
+      data: { settings, onboardedAt: new Date() },
+    });
+  },
+
+  saveSettings(id: string, settings: string) {
+    return db.user.update({ where: { id }, data: { settings } });
+  },
 };

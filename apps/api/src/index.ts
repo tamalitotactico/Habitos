@@ -11,6 +11,7 @@ import { habitRouter } from "./routes/habit.routes";
 import { habitLogRouter } from "./routes/habitLog.routes";
 import { timeEntryRouter } from "./routes/timeEntry.routes";
 import { insightRouter } from "./routes/insight.routes";
+import { profileRouter } from "./routes/profile.routes";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -33,6 +34,7 @@ app.use("/habits", habitRouter);
 app.use("/habit-logs", habitLogRouter);
 app.use("/time-entries", timeEntryRouter);
 app.use("/insights", insightRouter);
+app.use("/profile", profileRouter);
 
 // Centralised error handler — must be last
 app.use(errorHandler);

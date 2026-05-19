@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ListChecks, Timer, BarChart2, Settings } from "lucide-react";
+import { LayoutDashboard, ListChecks, Timer, BarChart2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -10,7 +10,7 @@ const nav = [
   { href: "/habits", label: "Hábitos", icon: ListChecks },
   { href: "/tracking", label: "Tiempo", icon: Timer },
   { href: "/analytics", label: "Análisis", icon: BarChart2 },
-  { href: "/settings", label: "Ajustes", icon: Settings },
+  { href: "/profile", label: "Perfil", icon: User },
 ];
 
 export function BottomNav() {
