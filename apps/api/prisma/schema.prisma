@@ -3,7 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -14,29 +15,25 @@ model User {
   refreshToken  String?
   onboardedAt   DateTime?
   createdAt     DateTime  @default(now())
-  settings      Json      @default("{}")
+  settings      String    @default("{}")
 
   habits      Habit[]
   timeEntries TimeEntry[]
   insights    Insight[]
 }
 
-enum HabitType {
-  good
-  bad
-}
-
+// type: "good" | "bad"
 model Habit {
-  id             String    @id @default(uuid())
+  id             String   @id @default(uuid())
   userId         String
   name           String
-  type           HabitType
+  type           String
   frequency      Int
   targetDuration Int?
   trigger        String?
   replacementFor String?
-  isArchived     Boolean   @default(false)
-  createdAt      DateTime  @default(now())
+  isArchived     Boolean  @default(false)
+  createdAt      DateTime @default(now())
 
   user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   logs HabitLog[]
@@ -47,7 +44,7 @@ model Habit {
 model HabitLog {
   id        String   @id @default(uuid())
   habitId   String
-  date      DateTime @db.Date
+  date      DateTime
   completed Boolean  @default(false)
   duration  Int?
   note      String?
@@ -59,50 +56,32 @@ model HabitLog {
   @@index([habitId])
 }
 
-enum TimeCategory {
-  social
-  work
-  entertainment
-  productivity
-  other
-}
-
-enum TimeSource {
-  manual
-  timer
-  extension
-}
-
+// category: "social" | "work" | "entertainment" | "productivity" | "other"
+// source: "manual" | "timer" | "extension"
 model TimeEntry {
-  id          String       @id @default(uuid())
+  id          String   @id @default(uuid())
   userId      String
   label       String
-  category    TimeCategory
+  category    String
   durationSec Int
   startedAt   DateTime
   endedAt     DateTime
-  source      TimeSource   @default(manual)
+  source      String   @default("manual")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, startedAt])
 }
 
-enum InsightType {
-  correlation
-  prediction
-  suggestion
-  alert
-}
-
+// type: "correlation" | "prediction" | "suggestion" | "alert"
 model Insight {
-  id        String      @id @default(uuid())
+  id        String   @id @default(uuid())
   userId    String
-  type      InsightType
+  type      String
   content   String
-  data      Json        @default("{}")
-  dismissed Boolean     @default(false)
-  createdAt DateTime    @default(now())
+  data      String   @default("{}")
+  dismissed Boolean  @default(false)
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

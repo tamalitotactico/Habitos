@@ -43,6 +43,8 @@ Thumbs.db
 
 # Prisma
 prisma/migrations/
+*.db
+*.db-journal
 
 # Testing
 coverage/
