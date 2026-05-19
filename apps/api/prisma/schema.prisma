@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -44,7 +44,7 @@ model Habit {
 model HabitLog {
   id        String   @id @default(uuid())
   habitId   String
-  date      DateTime
+  date      DateTime @db.Date
   completed Boolean  @default(false)
   duration  Int?
   note      String?
@@ -57,7 +57,7 @@ model HabitLog {
 }
 
 // category: "social" | "work" | "entertainment" | "productivity" | "other"
-// source: "manual" | "timer" | "extension"
+// source:   "manual" | "timer" | "extension"
 model TimeEntry {
   id          String   @id @default(uuid())
   userId      String

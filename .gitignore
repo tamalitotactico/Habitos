@@ -41,8 +41,7 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 
-# Prisma
-prisma/migrations/
+# Prisma — migrations must be committed (Railway needs them)
 *.db
 *.db-journal
 
