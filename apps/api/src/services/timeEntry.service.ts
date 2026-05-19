@@ -50,6 +50,51 @@ export const timeEntryService = {
     return serializeEntry(entry);
   },
 
+  async getWeekly(userId: string) {
+    const to = new Date();
+    to.setHours(23, 59, 59, 999);
+    const from = new Date();
+    from.setDate(from.getDate() - 6);
+    from.setHours(0, 0, 0, 0);
+
+    const entries = await timeEntryRepository.findByUserAndRange(userId, from, to);
+
+    const days: {
+      date: string;
+      label: string;
+      social: number; work: number; entertainment: number; productivity: number; other: number;
+      total: number;
+    }[] = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0];
+      const dayEntries = entries.filter((e) => e.startedAt.toISOString().startsWith(dateStr));
+
+      const row = {
+        date: dateStr,
+        label: d.toLocaleDateString("es", { weekday: "short" }),
+        social: 0, work: 0, entertainment: 0, productivity: 0, other: 0, total: 0,
+      };
+
+      for (const e of dayEntries) {
+        const cat = e.category as Category;
+        if (cat in row) (row as unknown as Record<string, number>)[cat] += e.durationSec;
+        row.total += e.durationSec;
+      }
+      days.push(row);
+    }
+
+    return { days };
+  },
+
+  async update(id: string, userId: string, data: { label?: string; category?: string }) {
+    const result = await timeEntryRepository.update(id, userId, data);
+    if (result.count === 0) return false;
+    return true;
+  },
+
   async delete(id: string, userId: string) {
     const result = await timeEntryRepository.delete(id, userId);
     if (result.count === 0) return false;

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Clock } from "lucide-react";
+import { Plus, Clock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -13,8 +14,14 @@ import {
 import { TimerWidget } from "@/components/tracking/TimerWidget";
 import { ManualEntryForm } from "@/components/tracking/ManualEntryForm";
 import { EntryList } from "@/components/tracking/EntryList";
+import { WeeklyChart } from "@/components/tracking/WeeklyChart";
 import { useTodayEntries } from "@/lib/hooks/useTimeEntries";
-import { CATEGORY_LABELS, CATEGORY_COLORS, TimeCategory } from "@/lib/api/timeEntries";
+import {
+  CATEGORY_LABELS,
+  CATEGORY_COLORS,
+  CATEGORY_LIMITS_SEC,
+  TimeCategory,
+} from "@/lib/api/timeEntries";
 
 function formatHours(sec: number) {
   const h = Math.floor(sec / 3600);
@@ -62,7 +69,6 @@ export default function TrackingPage() {
         </div>
       ) : (
         <>
-          {/* Total + category bars */}
           {totalSec > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -75,24 +81,44 @@ export default function TrackingPage() {
                 </span>
               </div>
 
-              {/* Category breakdown */}
               <div className="space-y-2">
                 {activeSummary.map(({ category, totalSec: catSec }) => {
                   const pct = totalSec > 0 ? Math.round((catSec / totalSec) * 100) : 0;
+                  const limit = CATEGORY_LIMITS_SEC[category as TimeCategory];
+                  const overLimit = limit !== undefined && catSec >= limit;
+
                   return (
                     <div key={category} className="space-y-1">
                       <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">
+                        <span className="flex items-center gap-1.5 text-muted-foreground">
                           {CATEGORY_LABELS[category as TimeCategory]}
+                          {overLimit && (
+                            <Badge
+                              variant="destructive"
+                              className="h-4 gap-0.5 px-1 py-0 text-[10px]"
+                            >
+                              <AlertTriangle className="h-2.5 w-2.5" />
+                              Límite
+                            </Badge>
+                          )}
                         </span>
-                        <span className="font-medium">{formatHours(catSec)} · {pct}%</span>
+                        <span className="font-medium">
+                          {formatHours(catSec)} · {pct}%
+                          {limit && (
+                            <span className="ml-1 text-muted-foreground">
+                              / {formatHours(limit)}
+                            </span>
+                          )}
+                        </span>
                       </div>
                       <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all"
                           style={{
-                            width: `${pct}%`,
-                            backgroundColor: CATEGORY_COLORS[category as TimeCategory],
+                            width: `${Math.min(pct, 100)}%`,
+                            backgroundColor: overLimit
+                              ? "hsl(var(--destructive))"
+                              : CATEGORY_COLORS[category as TimeCategory],
                           }}
                         />
                       </div>
@@ -112,6 +138,14 @@ export default function TrackingPage() {
           </div>
         </>
       )}
+
+      {/* Weekly chart */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+          Esta semana
+        </h2>
+        <WeeklyChart />
+      </div>
 
       {/* Manual entry dialog */}
       <Dialog open={manualOpen} onOpenChange={setManualOpen}>

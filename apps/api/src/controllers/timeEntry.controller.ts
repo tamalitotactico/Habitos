@@ -21,6 +21,11 @@ const rangeSchema = z.object({
   to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
+const updateSchema = z.object({
+  label: z.string().min(1).max(100).optional(),
+  category: z.enum(CATEGORIES).optional(),
+});
+
 export const timeEntryController = {
   async getToday(req: AuthRequest, res: Response, next: NextFunction) {
     try {
@@ -56,6 +61,22 @@ export const timeEntryController = {
         endedAt: new Date(body.endedAt),
       });
       res.status(201).json({ entry });
+    } catch (err) { next(err); }
+  },
+
+  async getWeekly(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const data = await timeEntryService.getWeekly(req.userId!);
+      res.json(data);
+    } catch (err) { next(err); }
+  },
+
+  async update(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const body = updateSchema.parse(req.body);
+      const updated = await timeEntryService.update(String(req.params.id), req.userId!, body);
+      if (!updated) throw new AppError(404, "Entry not found");
+      res.status(204).send();
     } catch (err) { next(err); }
   },
 

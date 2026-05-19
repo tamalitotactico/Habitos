@@ -44,6 +44,10 @@ export const timeEntryRepository = {
     return db.timeEntry.create({ data });
   },
 
+  update(id: string, userId: string, data: { label?: string; category?: string }) {
+    return db.timeEntry.updateMany({ where: { id, userId }, data });
+  },
+
   delete(id: string, userId: string) {
     return db.timeEntry.deleteMany({ where: { id, userId } });
   },
