@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  refreshToken  String?
+  onboardedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  settings      Json      @default("{}")
+
+  habits      Habit[]
+  timeEntries TimeEntry[]
+  insights    Insight[]
+}
+
+enum HabitType {
+  good
+  bad
+}
+
+model Habit {
+  id             String    @id @default(uuid())
+  userId         String
+  name           String
+  type           HabitType
+  frequency      Int
+  targetDuration Int?
+  trigger        String?
+  replacementFor String?
+  isArchived     Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs HabitLog[]
+
+  @@index([userId])
+}
+
+model HabitLog {
+  id        String   @id @default(uuid())
+  habitId   String
+  date      DateTime @db.Date
+  completed Boolean  @default(false)
+  duration  Int?
+  note      String?
+  createdAt DateTime @default(now())
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+  @@index([habitId])
+}
+
+enum TimeCategory {
+  social
+  work
+  entertainment
+  productivity
+  other
+}
+
+enum TimeSource {
+  manual
+  timer
+  extension
+}
+
+model TimeEntry {
+  id          String       @id @default(uuid())
+  userId      String
+  label       String
+  category    TimeCategory
+  durationSec Int
+  startedAt   DateTime
+  endedAt     DateTime
+  source      TimeSource   @default(manual)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt])
+}
+
+enum InsightType {
+  correlation
+  prediction
+  suggestion
+  alert
+}
+
+model Insight {
+  id        String      @id @default(uuid())
+  userId    String
+  type      InsightType
+  content   String
+  data      Json        @default("{}")
+  dismissed Boolean     @default(false)
+  createdAt DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dismissed])
+}
