@@ -1,0 +1,89 @@
+// Schema LOCAL para desarrollo (SQLite).
+// Producción usa prisma/schema.prisma (PostgreSQL).
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  refreshToken  String?
+  onboardedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  settings      String    @default("{}")
+
+  habits      Habit[]
+  timeEntries TimeEntry[]
+  insights    Insight[]
+}
+
+model Habit {
+  id             String   @id @default(uuid())
+  userId         String
+  name           String
+  type           String
+  frequency      Int
+  targetDuration Int?
+  trigger        String?
+  replacementFor String?
+  isArchived     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs HabitLog[]
+
+  @@index([userId])
+}
+
+model HabitLog {
+  id        String   @id @default(uuid())
+  habitId   String
+  date      DateTime
+  completed Boolean  @default(false)
+  duration  Int?
+  note      String?
+  createdAt DateTime @default(now())
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+  @@index([habitId])
+}
+
+model TimeEntry {
+  id          String   @id @default(uuid())
+  userId      String
+  label       String
+  category    String
+  durationSec Int
+  startedAt   DateTime
+  endedAt     DateTime
+  source      String   @default("manual")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt])
+}
+
+model Insight {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  content   String
+  data      String   @default("{}")
+  dismissed Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dismissed])
+}
