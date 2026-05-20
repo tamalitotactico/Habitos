@@ -20,13 +20,13 @@ export const habitLogController = {
   async upsert(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { habitId, date, completed, duration, note } = upsertSchema.parse(req.body);
-      const log = await habitLogService.upsert(req.userId!, habitId, {
+      const result = await habitLogService.upsert(req.userId!, habitId, {
         date,
         completed,
         duration,
         note,
       });
-      res.json({ log });
+      res.json(result);
     } catch (err) { next(err); }
   },
 

@@ -17,9 +17,37 @@ model User {
   createdAt     DateTime  @default(now())
   settings      String    @default("{}")
 
-  habits      Habit[]
-  timeEntries TimeEntry[]
-  insights    Insight[]
+  habits             Habit[]
+  timeEntries        TimeEntry[]
+  insights           Insight[]
+  stats              UserStats?
+  achievementUnlocks AchievementUnlock[]
+}
+
+model UserStats {
+  userId              String   @id
+  xp                  Int      @default(0)
+  level               Int      @default(1)
+  lifetimeCompletions Int      @default(0)
+  currentDailyStreak  Int      @default(0)
+  longestDailyStreak  Int      @default(0)
+  lastActiveDate      DateTime?
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AchievementUnlock {
+  id             String   @id @default(uuid())
+  userId         String
+  achievementKey String
+  unlockedAt     DateTime @default(now())
+  notifiedAt     DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementKey])
+  @@index([userId])
 }
 
 // type: "good" | "bad"

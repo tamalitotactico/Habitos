@@ -1,13 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Flame, Sunrise, Sun, Moon } from "lucide-react";
+import { Flame, Sunrise, Sun, Moon, Trophy } from "lucide-react";
+import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HabitRow } from "@/components/habits/HabitRow";
 import { EmptyHabits } from "@/components/habits/EmptyHabits";
 import { SproutMascot } from "@/components/SproutMascot";
 import { Confetti } from "@/components/Confetti";
+import { XPBar } from "@/components/gamification/XPBar";
+import { LevelBadge } from "@/components/gamification/LevelBadge";
+import { MotivationMessage, pickMood } from "@/components/MotivationMessage";
 import { useToday } from "@/lib/hooks/useHabits";
+import { useStats } from "@/lib/hooks/useGamification";
 import { useAuthStore } from "@/stores/auth.store";
 
 function todayStr() {
@@ -41,6 +46,7 @@ function progressMsg(done: number, total: number) {
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const { data: habits, isLoading } = useToday();
+  const { data: stats } = useStats();
   const date = todayStr();
 
   const { good, bad } = useMemo(() => {
@@ -53,10 +59,10 @@ export default function DashboardPage() {
 
   const completedCount = habits?.filter((h) => h.todayLog?.completed).length ?? 0;
   const total = habits?.length ?? 0;
-  const bestStreak = habits?.reduce((max, h) => Math.max(max, h.streak), 0) ?? 0;
+  const bestStreak = stats?.currentDailyStreak ?? habits?.reduce((max, h) => Math.max(max, h.streak), 0) ?? 0;
   const allDone = total > 0 && completedCount === total;
 
-  // Trigger confetti once when day reaches 100%
+  // Confetti on day complete
   const [celebrate, setCelebrate] = useState(false);
   const wasAllDone = useRef(false);
   useEffect(() => {
@@ -69,7 +75,7 @@ export default function DashboardPage() {
     if (!allDone) wasAllDone.current = false;
   }, [allDone]);
 
-  // Bump streak when changes
+  // Bump streak on increase
   const [streakBump, setStreakBump] = useState(false);
   const prevStreak = useRef(bestStreak);
   useEffect(() => {
@@ -89,14 +95,13 @@ export default function DashboardPage() {
       <Confetti show={celebrate} />
 
       <div className="space-y-6">
-        {/* Hero — garden card */}
-        <div className="relative overflow-hidden rounded-[2rem] border-2 border-primary/15 bg-gradient-to-br from-primary/[0.05] via-background to-accent/[0.04] p-6 shadow-soft">
-          {/* Decorative leaves background */}
+        {/* Hero — garden card with gamification */}
+        <div className="relative overflow-hidden rounded-[2rem] border-2 border-primary/15 bg-gradient-to-br from-primary/[0.06] via-background to-accent/[0.05] p-6 shadow-soft">
           <div className="pointer-events-none absolute -right-8 -top-8 h-44 w-44 rounded-full bg-primary/8 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-12 -left-8 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
 
+          {/* Top row: mascot + greeting + level */}
           <div className="relative flex items-start gap-5">
-            {/* Mascot */}
             {isLoading ? (
               <Skeleton className="h-32 w-32 rounded-3xl shrink-0" />
             ) : (
@@ -105,43 +110,58 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Greeting + streak */}
             <div className="min-w-0 flex-1 space-y-3 pt-1">
               <div className="flex items-center gap-2">
                 <GreetingIcon className="h-4 w-4 text-accent-shadow" />
-                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                <span className="font-display text-xs font-black uppercase tracking-widest text-muted-foreground">
                   {greetingLabel}
                 </span>
               </div>
 
-              <h1 className="font-display text-2xl font-black leading-tight text-foreground">
+              <h1 className="font-display text-xl font-black leading-tight">
                 {isLoading ? <Skeleton className="h-7 w-48" /> : plantStageMsg(bestStreak, userName)}
               </h1>
 
-              {/* Streak pill — big and proud */}
+              {/* Streak + Level row */}
               {!isLoading && (
-                <div className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 shadow-press-accent">
-                  <Flame className="h-5 w-5 text-accent-foreground" strokeWidth={2.5} fill="currentColor" />
-                  <span
-                    className={`font-display text-xl font-black tabular-nums text-accent-foreground ${
-                      streakBump ? "animate-streak-bump" : ""
-                    }`}
-                  >
-                    {bestStreak}
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-wider text-accent-foreground/80">
-                    {bestStreak === 1 ? "día" : "días"} de racha
-                  </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 shadow-press-accent">
+                    <Flame className="h-4 w-4 text-accent-foreground" strokeWidth={2.5} fill="currentColor" />
+                    <span
+                      className={`font-display text-base font-black tabular-nums text-accent-foreground ${
+                        streakBump ? "animate-streak-bump" : ""
+                      }`}
+                    >
+                      {bestStreak}
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground/80">
+                      {bestStreak === 1 ? "día" : "días"}
+                    </span>
+                  </div>
+
+                  {stats && <LevelBadge level={stats.level} size="sm" />}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Progress strip at bottom */}
+          {/* XP bar */}
+          {stats && (
+            <div className="relative mt-5 rounded-2xl bg-card/60 backdrop-blur p-3 border border-border/60">
+              <XPBar
+                xpInLevel={stats.xpInLevel}
+                xpForNextLevel={stats.xpForNextLevel}
+                percent={stats.percentToNextLevel}
+                size="sm"
+              />
+            </div>
+          )}
+
+          {/* Daily progress strip */}
           {!isLoading && total > 0 && (
-            <div className="relative mt-6 space-y-2">
+            <div className="relative mt-4 space-y-2">
               <div className="flex items-baseline justify-between">
-                <span className="font-display text-sm font-bold text-foreground">
+                <span className="font-display text-sm font-black">
                   {progressMsg(completedCount, total)}
                 </span>
                 <span className="font-display text-sm font-black tabular-nums text-primary">
@@ -150,11 +170,22 @@ export default function DashboardPage() {
               </div>
               <div className="relative h-3 overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-all duration-700 ease-out"
+                  className="h-full rounded-full bg-gradient-to-r from-primary via-success to-primary transition-all duration-700 ease-out"
                   style={{ width: `${(completedCount / total) * 100}%` }}
                 />
               </div>
             </div>
+          )}
+
+          {/* Quick achievements link */}
+          {stats && (
+            <Link
+              href="/achievements"
+              className="relative mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Trophy className="h-3.5 w-3.5" />
+              Ver mis logros
+            </Link>
           )}
         </div>
 
@@ -167,10 +198,13 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Empty state */}
         {!isLoading && total === 0 && <EmptyHabits />}
 
-        {/* Good habits */}
+        {/* Emotional motivation strip */}
+        {!isLoading && total > 0 && (
+          <MotivationMessage mood={pickMood({ completed: completedCount, total, streak: bestStreak })} />
+        )}
+
         {!isLoading && good.length > 0 && (
           <section className="space-y-3">
             <h2 className="font-display text-xs font-black uppercase tracking-widest text-primary">
@@ -184,11 +218,10 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* Bad habits */}
         {!isLoading && bad.length > 0 && (
           <section className="space-y-3">
-            <h2 className="font-display text-xs font-black uppercase tracking-widest text-destructive">
-              🚫 A evitar
+            <h2 className="font-display text-xs font-black uppercase tracking-widest text-warning">
+              💪 A superar
             </h2>
             <div className="space-y-2">
               {bad.map((h) => (

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth.store";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { AchievementUnlockListener } from "@/components/gamification/AchievementUnlockListener";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuthStore();
@@ -29,6 +30,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Bottom nav — visible en móvil */}
       <BottomNav />
+
+      {/* Achievement unlock toasts */}
+      <AchievementUnlockListener />
     </div>
   );
 }

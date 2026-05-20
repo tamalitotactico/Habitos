@@ -12,6 +12,7 @@ import { habitLogRouter } from "./routes/habitLog.routes";
 import { timeEntryRouter } from "./routes/timeEntry.routes";
 import { insightRouter } from "./routes/insight.routes";
 import { profileRouter } from "./routes/profile.routes";
+import { gamificationRouter } from "./routes/gamification.routes";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -35,6 +36,7 @@ app.use("/habit-logs", habitLogRouter);
 app.use("/time-entries", timeEntryRouter);
 app.use("/insights", insightRouter);
 app.use("/profile", profileRouter);
+app.use("/gamification", gamificationRouter);
 
 // Centralised error handler — must be last
 app.use(errorHandler);

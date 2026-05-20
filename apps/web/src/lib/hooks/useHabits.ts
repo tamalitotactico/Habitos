@@ -64,6 +64,9 @@ export function useUpsertLog() {
     mutationFn: (data: UpsertLogDto) => habitsApi.upsertLog(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: TODAY_KEY });
+      qc.invalidateQueries({ queryKey: ["gamification", "stats"] });
+      qc.invalidateQueries({ queryKey: ["gamification", "pending"] });
+      qc.invalidateQueries({ queryKey: ["gamification", "achievements"] });
     },
     onError: () => toast.error("Error al registrar el hábito"),
   });
