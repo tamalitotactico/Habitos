@@ -7,8 +7,13 @@ import { Toaster } from "@/components/ui/sonner";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Habit App",
-  description: "Build good habits, understand why you quit.",
+  title: {
+    default: "HabitApp",
+    template: "%s | HabitApp",
+  },
+  description:
+    "Registra hábitos, controla tu tiempo y descubre los patrones que te frenan. Insights con IA incluidos.",
+  metadataBase: new URL("https://habitapp.vercel.app"),
 };
 
 export default function RootLayout({

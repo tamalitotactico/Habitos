@@ -1,18 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useRegister } from "@/lib/hooks/useAuth";
+import { useAuthStore } from "@/stores/auth.store";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const register = useRegister();
+  const user = useAuthStore((s) => s.user);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user?.onboardedAt) router.replace("/dashboard");
+    else if (user) router.replace("/onboarding");
+  }, [user, router]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
