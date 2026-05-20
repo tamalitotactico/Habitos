@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Flame, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -9,15 +9,27 @@ import { useUpsertLog } from "@/lib/hooks/useHabits";
 
 interface Props {
   habit: HabitWithToday;
-  date: string; // YYYY-MM-DD
+  date: string;
 }
 
 export function HabitRow({ habit, date }: Props) {
   const upsert = useUpsertLog();
   const completed = habit.todayLog?.completed ?? false;
   const [optimistic, setOptimistic] = useState<boolean | null>(null);
-
   const isCompleted = optimistic ?? completed;
+
+  // Trigger animation when transitioning to completed
+  const [justCompleted, setJustCompleted] = useState(false);
+  const prevCompleted = useRef(isCompleted);
+
+  useEffect(() => {
+    if (!prevCompleted.current && isCompleted) {
+      setJustCompleted(true);
+      const t = setTimeout(() => setJustCompleted(false), 900);
+      return () => clearTimeout(t);
+    }
+    prevCompleted.current = isCompleted;
+  }, [isCompleted]);
 
   function toggle() {
     const next = !isCompleted;
@@ -31,26 +43,39 @@ export function HabitRow({ habit, date }: Props) {
   return (
     <div
       className={cn(
-        "group flex items-center gap-4 rounded-xl border p-4 transition-colors",
+        "group relative flex items-center gap-4 rounded-xl border p-4 transition-all",
         isCompleted
           ? "border-transparent bg-primary/8"
-          : "border-border bg-card hover:bg-muted/40"
+          : "border-border bg-card hover:bg-muted/40 hover:border-muted-foreground/30"
       )}
     >
-      {/* Checkbox */}
+      {/* Checkbox button with animations */}
       <button
         onClick={toggle}
         disabled={upsert.isPending}
         aria-label={isCompleted ? "Desmarcar" : "Marcar como hecho"}
         className={cn(
-          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all",
+          "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all active:scale-95",
           isCompleted
             ? "border-primary bg-primary text-primary-foreground"
-            : "border-muted-foreground/40 hover:border-primary"
+            : "border-muted-foreground/40 hover:border-primary hover:bg-primary/10",
+          justCompleted && "animate-habit-pop"
         )}
       >
+        {/* Ring pulse on complete */}
+        {justCompleted && (
+          <span className="pointer-events-none absolute inset-0 rounded-full animate-ring-pulse" />
+        )}
         {isCompleted && <Check className="h-4 w-4" strokeWidth={3} />}
       </button>
+
+      {/* Streak +1 floater */}
+      {justCompleted && habit.streak > 0 && (
+        <span className="pointer-events-none absolute left-9 top-2 flex items-center gap-0.5 text-xs font-bold text-orange-500 animate-streak-float">
+          <Flame className="h-3 w-3" />
+          +1
+        </span>
+      )}
 
       {/* Info */}
       <div className="min-w-0 flex-1">

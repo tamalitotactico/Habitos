@@ -149,9 +149,12 @@ function EntryRow({ entry }: { entry: TimeEntry }) {
 export function EntryList({ entries }: Props) {
   if (!entries.length) {
     return (
-      <p className="py-6 text-center text-sm text-muted-foreground">
-        Aún no hay sesiones registradas hoy
-      </p>
+      <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed py-8 text-center">
+        <p className="text-sm font-medium">El día está por estrenarse</p>
+        <p className="max-w-xs text-xs text-muted-foreground">
+          Tu primera sesión aparecerá aquí en cuanto inicies el cronómetro.
+        </p>
+      </div>
     );
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, Square, Timer } from "lucide-react";
+import { Play, Pause, Square, Info, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,9 +19,10 @@ import {
 import {
   TIME_CATEGORIES,
   CATEGORY_LABELS,
+  CATEGORY_COLORS,
   TimeCategory,
 } from "@/lib/api/timeEntries";
-import { useCreateTimeEntry } from "@/lib/hooks/useTimeEntries";
+import { useCreateTimeEntry, useTimeLabels } from "@/lib/hooks/useTimeEntries";
 import { toast } from "sonner";
 
 function formatTime(sec: number) {
@@ -40,9 +41,9 @@ export function TimerWidget() {
   const [draftLabel, setDraftLabel] = useState("");
   const [draftCategory, setDraftCategory] = useState<TimeCategory>("productivity");
   const create = useCreateTimeEntry();
+  const { data: recentLabels } = useTimeLabels();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Tick while running
   useEffect(() => {
     if (status === "running") {
       intervalRef.current = setInterval(() => {
@@ -72,39 +73,60 @@ export function TimerWidget() {
     );
   }
 
+  function pickRecent(rec: { label: string; category: TimeCategory }) {
+    setDraftLabel(rec.label);
+    setDraftCategory(rec.category);
+  }
+
   const isIdle = status === "idle";
   const isRunning = status === "running";
   const isPaused = status === "paused";
 
+  // Show only top 4 most-recent distinct labels
+  const chips = (recentLabels ?? []).slice(0, 4);
+
   return (
     <div
       className={cn(
-        "rounded-2xl border p-5 space-y-4 transition-colors",
-        isRunning && "border-primary/40 bg-primary/5",
+        "rounded-2xl border p-5 space-y-4 transition-all",
+        isRunning && "border-primary/40 bg-primary/5 animate-timer-glow",
         isPaused && "border-amber-400/40 bg-amber-50/30 dark:bg-amber-950/20"
       )}
     >
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <div className={cn(
-          "h-2 w-2 rounded-full",
-          isRunning && "animate-pulse bg-primary",
-          isPaused && "bg-amber-400",
-          isIdle && "bg-muted-foreground/30"
-        )} />
-        <span className="text-sm font-medium text-muted-foreground">
-          {isIdle ? "Timer" : isRunning ? "Registrando…" : "En pausa"}
-        </span>
+      {/* Header with status */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className={cn(
+            "h-2 w-2 rounded-full",
+            isRunning && "animate-pulse bg-primary",
+            isPaused && "bg-amber-400",
+            isIdle && "bg-muted-foreground/30"
+          )} />
+          <span className="text-sm font-medium">
+            {isIdle ? "Cronómetro" : isRunning ? "Registrando…" : "En pausa"}
+          </span>
+        </div>
+        {isIdle && (
+          <span className="hidden items-center gap-1 text-xs text-muted-foreground sm:inline-flex">
+            <Info className="h-3 w-3" />
+            Mide en qué inviertes tu tiempo
+          </span>
+        )}
       </div>
 
       {/* Clock display */}
-      <div className="text-center">
+      <div className="text-center py-2">
         <span className={cn(
-          "font-mono text-5xl font-bold tabular-nums tracking-tighter",
-          isIdle && "text-muted-foreground/50"
+          "font-mono font-bold tabular-nums tracking-tighter transition-all",
+          isIdle ? "text-4xl text-muted-foreground/40" : "text-6xl",
         )}>
           {formatTime(elapsed)}
         </span>
+        {isIdle && (
+          <p className="mt-2 text-xs text-muted-foreground sm:hidden">
+            Mide en qué inviertes tu tiempo
+          </p>
+        )}
       </div>
 
       {/* Label + category — editable only when idle */}
@@ -117,7 +139,34 @@ export function TimerWidget() {
               onChange={(e) => setDraftLabel(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleStart()}
               maxLength={100}
+              className="text-base"
             />
+
+            {/* Quick-pick chips from recent labels */}
+            {chips.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+                  <Sparkles className="h-3 w-3" />
+                  Recientes
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {chips.map((rec) => (
+                    <button
+                      key={rec.label}
+                      onClick={() => pickRecent(rec)}
+                      className="group inline-flex items-center gap-1.5 rounded-full border bg-card px-2.5 py-1 text-xs transition-colors hover:bg-muted"
+                    >
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: CATEGORY_COLORS[rec.category] }}
+                      />
+                      <span className="truncate max-w-[140px]">{rec.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <Select
               value={draftCategory}
               onValueChange={(v) => v && setDraftCategory(v as TimeCategory)}
@@ -128,17 +177,27 @@ export function TimerWidget() {
               <SelectContent>
                 {TIME_CATEGORIES.map((cat) => (
                   <SelectItem key={cat} value={cat}>
-                    {CATEGORY_LABELS[cat]}
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: CATEGORY_COLORS[cat] }}
+                      />
+                      {CATEGORY_LABELS[cat]}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </>
         ) : (
-          <div className="rounded-lg bg-muted/60 px-3 py-2 text-sm">
-            <span className="font-medium">{label}</span>
-            <span className="ml-2 text-muted-foreground">
-              · {CATEGORY_LABELS[category as TimeCategory]}
+          <div className="flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-sm">
+            <span
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: CATEGORY_COLORS[category as TimeCategory] }}
+            />
+            <span className="truncate font-medium">{label}</span>
+            <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+              {CATEGORY_LABELS[category as TimeCategory]}
             </span>
           </div>
         )}
@@ -149,7 +208,7 @@ export function TimerWidget() {
         {isIdle && (
           <Button className="flex-1 gap-2" onClick={handleStart}>
             <Play className="h-4 w-4" />
-            Iniciar
+            Iniciar sesión
           </Button>
         )}
         {isRunning && (

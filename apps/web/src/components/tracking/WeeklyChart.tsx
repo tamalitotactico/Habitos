@@ -37,9 +37,12 @@ export function WeeklyChart() {
 
   if (!data || data.days.every((d) => d.total === 0)) {
     return (
-      <p className="py-6 text-center text-sm text-muted-foreground">
-        Sin datos esta semana
-      </p>
+      <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed py-8 text-center">
+        <p className="text-sm font-medium">Aún no hay datos esta semana</p>
+        <p className="max-w-xs text-xs text-muted-foreground">
+          Inicia el cronómetro o agrega una sesión manual para ver tu gráfica.
+        </p>
+      </div>
     );
   }
 
