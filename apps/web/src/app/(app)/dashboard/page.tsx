@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Flame, Sunrise, Sun, Moon, Trophy } from "lucide-react";
+import { Flame, Sunrise, Sun, Moon, Trophy, Snowflake } from "lucide-react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HabitRow } from "@/components/habits/HabitRow";
@@ -10,6 +10,7 @@ import { SproutMascot } from "@/components/SproutMascot";
 import { Confetti } from "@/components/Confetti";
 import { XPBar } from "@/components/gamification/XPBar";
 import { LevelBadge } from "@/components/gamification/LevelBadge";
+import { MissionsPanel } from "@/components/gamification/MissionsPanel";
 import { MotivationMessage, pickMood } from "@/components/MotivationMessage";
 import { useToday } from "@/lib/hooks/useHabits";
 import { useStats } from "@/lib/hooks/useGamification";
@@ -140,6 +141,16 @@ export default function DashboardPage() {
                   </div>
 
                   {stats && <LevelBadge level={stats.level} size="sm" />}
+
+                  {stats && stats.streakFreezesAvailable > 0 && (
+                    <div
+                      title="Si pierdes un día, se conserva tu racha automáticamente"
+                      className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+                    >
+                      <Snowflake className="h-3 w-3 text-blue-500" />
+                      {stats.streakFreezesAvailable}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -204,6 +215,9 @@ export default function DashboardPage() {
         {!isLoading && total > 0 && (
           <MotivationMessage mood={pickMood({ completed: completedCount, total, streak: bestStreak })} />
         )}
+
+        {/* Missions / Challenges */}
+        {!isLoading && total > 0 && <MissionsPanel />}
 
         {!isLoading && good.length > 0 && (
           <section className="space-y-3">

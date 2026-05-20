@@ -26,19 +26,38 @@ model User {
   insights           Insight[]
   stats              UserStats?
   achievementUnlocks AchievementUnlock[]
+  challenges         ChallengeAssignment[]
 }
 
 model UserStats {
-  userId              String   @id
-  xp                  Int      @default(0)
-  level               Int      @default(1)
-  lifetimeCompletions Int      @default(0)
-  currentDailyStreak  Int      @default(0)
-  longestDailyStreak  Int      @default(0)
-  lastActiveDate      DateTime?
-  updatedAt           DateTime @updatedAt
+  userId                  String    @id
+  xp                      Int       @default(0)
+  level                   Int       @default(1)
+  lifetimeCompletions     Int       @default(0)
+  currentDailyStreak      Int       @default(0)
+  longestDailyStreak      Int       @default(0)
+  lastActiveDate          DateTime?
+  streakFreezesAvailable  Int       @default(1)
+  lastFreezeRefreshAt     DateTime?
+  updatedAt               DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ChallengeAssignment {
+  id           String    @id @default(uuid())
+  userId       String
+  challengeKey String
+  type         String    // "daily" | "weekly"
+  periodKey    String    // "2026-05-20" for daily, "2026-W21" for weekly
+  startedAt    DateTime  @default(now())
+  expiresAt    DateTime
+  completedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, periodKey])
+  @@index([userId])
 }
 
 // Server-side definitions of achievements are in code (achievement.catalog.ts).

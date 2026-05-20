@@ -67,6 +67,8 @@ export function useUpsertLog() {
       qc.invalidateQueries({ queryKey: ["gamification", "stats"] });
       qc.invalidateQueries({ queryKey: ["gamification", "pending"] });
       qc.invalidateQueries({ queryKey: ["gamification", "achievements"] });
+      qc.invalidateQueries({ queryKey: ["gamification", "challenges"] });
+      qc.invalidateQueries({ queryKey: ["gamification", "calendar"] });
     },
     onError: () => toast.error("Error al registrar el hábito"),
   });

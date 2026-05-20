@@ -12,6 +12,8 @@ export const userStatsRepository = {
     currentDailyStreak?: number;
     longestDailyStreak?: number;
     lastActiveDate?: Date | null;
+    streakFreezesAvailable?: number;
+    lastFreezeRefreshAt?: Date | null;
   }) {
     return db.userStats.upsert({
       where: { userId },

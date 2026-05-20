@@ -3,6 +3,7 @@ import { habitRepository } from "../repositories/habit.repository";
 import { habitLogRepository } from "../repositories/habitLog.repository";
 import { userStatsService } from "./userStats.service";
 import { achievementService } from "./achievement.service";
+import { challengeService } from "./challenge.service";
 
 export const habitLogService = {
   async upsert(
@@ -40,9 +41,10 @@ export const habitLogService = {
         completed: data.completed,
         logDate: date,
       });
-      // Only check achievements when completing (not when uncompleting)
+      // Only check achievements/challenges when completing (not when uncompleting)
       if (data.completed) {
         newAchievements = await achievementService.checkAndUnlock(userId);
+        await challengeService.checkProgress(userId);
       }
     }
 

@@ -10,3 +10,5 @@ gamificationRouter.get("/stats", gamificationController.getStats);
 gamificationRouter.get("/achievements", gamificationController.listAchievements);
 gamificationRouter.get("/achievements/pending", gamificationController.getPending);
 gamificationRouter.post("/achievements/notified", gamificationController.markNotified);
+gamificationRouter.get("/challenges", gamificationController.getChallenges);
+gamificationRouter.get("/calendar", gamificationController.getCalendar);

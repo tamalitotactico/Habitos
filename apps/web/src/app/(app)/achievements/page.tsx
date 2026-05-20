@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AchievementCard } from "@/components/gamification/AchievementCard";
 import { LevelBadge } from "@/components/gamification/LevelBadge";
 import { XPBar } from "@/components/gamification/XPBar";
+import { StreakCalendar } from "@/components/gamification/StreakCalendar";
 import { useAchievements, useStats } from "@/lib/hooks/useGamification";
 import { Achievement, AchievementCategory } from "@/lib/api/gamification";
 
@@ -78,6 +79,9 @@ export default function AchievementsPage() {
           </div>
         </div>
       )}
+
+      {/* Streak calendar */}
+      <StreakCalendar />
 
       {/* Loading */}
       {isLoading && (

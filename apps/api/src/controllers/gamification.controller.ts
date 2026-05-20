@@ -3,6 +3,7 @@ import { z } from "zod";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { userStatsService } from "../services/userStats.service";
 import { achievementService } from "../services/achievement.service";
+import { challengeService } from "../services/challenge.service";
 
 const markNotifiedSchema = z.object({
   ids: z.array(z.string()).min(1).max(50),
@@ -35,6 +36,20 @@ export const gamificationController = {
       const { ids } = markNotifiedSchema.parse(req.body);
       const result = await achievementService.markNotified(req.userId!, ids);
       res.json({ marked: result.count });
+    } catch (err) { next(err); }
+  },
+
+  async getChallenges(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const challenges = await challengeService.getActive(req.userId!);
+      res.json({ challenges });
+    } catch (err) { next(err); }
+  },
+
+  async getCalendar(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const days = await userStatsService.getCalendar(req.userId!);
+      res.json({ days });
     } catch (err) { next(err); }
   },
 };

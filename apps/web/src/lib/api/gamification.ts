@@ -13,6 +13,34 @@ export interface UserStats {
   currentDailyStreak: number;
   longestDailyStreak: number;
   lastActiveDate: string | null;
+  streakFreezesAvailable: number;
+}
+
+export type ChallengeType = "daily" | "weekly";
+
+export interface Challenge {
+  id: string;
+  type: ChallengeType;
+  challenge: {
+    key: string;
+    title: string;
+    description: string;
+    icon: string;
+    xpReward: number;
+  };
+  progress: number;
+  goal: number;
+  percent: number;
+  completed: boolean;
+  completedAt: string | null;
+  expiresAt: string;
+}
+
+export interface CalendarDay {
+  date: string;
+  completed: number;
+  total: number;
+  ratio: number;
 }
 
 export interface Achievement {
@@ -45,4 +73,6 @@ export const gamificationApi = {
   getPending: () => api.get<{ pending: PendingAchievement[] }>("/gamification/achievements/pending"),
   markNotified: (ids: string[]) =>
     api.post<{ marked: number }>("/gamification/achievements/notified", { ids }),
+  getChallenges: () => api.get<{ challenges: Challenge[] }>("/gamification/challenges"),
+  getCalendar: () => api.get<{ days: CalendarDay[] }>("/gamification/calendar"),
 };
