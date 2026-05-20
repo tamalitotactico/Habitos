@@ -206,7 +206,7 @@ export function TimerWidget() {
       {/* Controls */}
       <div className="flex gap-2">
         {isIdle && (
-          <Button className="flex-1 gap-2" onClick={handleStart}>
+          <Button size="lg" className="flex-1 gap-2" onClick={handleStart}>
             <Play className="h-4 w-4" />
             Iniciar sesión
           </Button>

@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${inter.variable} ${nunito.variable}`}>
+    <html lang="es" className={`${inter.variable} ${nunito.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
         <Providers>
           {children}

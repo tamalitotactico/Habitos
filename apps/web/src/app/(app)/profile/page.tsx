@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { useProfile, useGenerateDiagnosis } from "@/lib/hooks/useProfile";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -78,6 +79,16 @@ export default function ProfilePage() {
                   disponibles al día
                 </span>
               </div>
+            </Card>
+          </div>
+
+          {/* Personalization — theme switcher */}
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+              Personalización
+            </h2>
+            <Card className="p-5">
+              <ThemeSwitcher />
             </Card>
           </div>
 
