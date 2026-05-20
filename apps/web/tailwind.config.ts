@@ -8,6 +8,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "var(--font-sans)", "system-ui", "sans-serif"],
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
@@ -22,6 +26,7 @@ const config: Config = {
         primary: {
           DEFAULT: "var(--primary)",
           foreground: "var(--primary-foreground)",
+          shadow: "var(--primary-shadow)",
         },
         secondary: {
           DEFAULT: "var(--secondary)",
@@ -34,18 +39,29 @@ const config: Config = {
         accent: {
           DEFAULT: "var(--accent)",
           foreground: "var(--accent-foreground)",
+          shadow: "var(--accent-shadow)",
         },
         destructive: {
           DEFAULT: "var(--destructive)",
+          shadow: "var(--destructive-shadow)",
         },
+        success: "var(--success)",
+        warning: "var(--warning)",
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 4px)",
+        sm: "calc(var(--radius) - 8px)",
+      },
+      boxShadow: {
+        press: "var(--shadow-press)",
+        "press-accent": "var(--shadow-press-accent)",
+        "press-destructive": "var(--shadow-press-destructive)",
+        soft: "var(--shadow-soft)",
+        lift: "var(--shadow-lift)",
       },
     },
   },

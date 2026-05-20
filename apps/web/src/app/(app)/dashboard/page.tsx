@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
-import { Flame, Sparkles, Sunrise, Moon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Flame, Sunrise, Sun, Moon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HabitRow } from "@/components/habits/HabitRow";
 import { EmptyHabits } from "@/components/habits/EmptyHabits";
+import { SproutMascot } from "@/components/SproutMascot";
+import { Confetti } from "@/components/Confetti";
 import { useToday } from "@/lib/hooks/useHabits";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -12,20 +14,28 @@ function todayStr() {
   return new Date().toISOString().split("T")[0];
 }
 
-function greeting(name: string) {
+function timeOfDay() {
   const h = new Date().getHours();
-  if (h < 12) return { text: `Buenos días, ${name}`, Icon: Sunrise };
-  if (h < 20) return { text: `Buenas tardes, ${name}`, Icon: Sparkles };
-  return { text: `Buenas noches, ${name}`, Icon: Moon };
+  if (h < 12) return { label: "Buenos días", Icon: Sunrise };
+  if (h < 20) return { label: "Buenas tardes", Icon: Sun };
+  return { label: "Buenas noches", Icon: Moon };
 }
 
-function contextualMessage(done: number, total: number) {
-  if (total === 0) return "Crea tu primer hábito para empezar";
-  if (done === 0) return "Empieza el día con un pequeño paso";
-  if (done === total) return "¡Día completo! Te lo has ganado 🎉";
-  if (done / total >= 0.7) return "Estás cerca, no aflojes";
+function plantStageMsg(streak: number, name: string) {
+  if (streak === 0) return `Tu jardín te espera, ${name}`;
+  if (streak < 4)  return `Tu brote es joven. Mímalo, ${name}`;
+  if (streak < 10) return `Tu planta crece firme, ${name}`;
+  if (streak < 30) return `Una planta sana. Sigue regándola`;
+  return `Tu jardín florece, ${name} 🌸`;
+}
+
+function progressMsg(done: number, total: number) {
+  if (total === 0) return "Aún no plantas nada hoy";
+  if (done === 0) return "Empieza con uno pequeño";
+  if (done === total) return "¡Día completo!";
+  if (done / total >= 0.7) return "Casi terminas, no aflojes";
   if (done / total >= 0.3) return "Vas en buen camino";
-  return "Acabas de empezar, sigue así";
+  return "Acabas de empezar";
 }
 
 export default function DashboardPage() {
@@ -43,145 +53,151 @@ export default function DashboardPage() {
 
   const completedCount = habits?.filter((h) => h.todayLog?.completed).length ?? 0;
   const total = habits?.length ?? 0;
-  const progress = total ? completedCount / total : 0;
   const bestStreak = habits?.reduce((max, h) => Math.max(max, h.streak), 0) ?? 0;
   const allDone = total > 0 && completedCount === total;
 
-  const { text: greetingText, Icon: GreetingIcon } = user
-    ? greeting(user.name)
-    : { text: "Hoy", Icon: Sparkles };
+  // Trigger confetti once when day reaches 100%
+  const [celebrate, setCelebrate] = useState(false);
+  const wasAllDone = useRef(false);
+  useEffect(() => {
+    if (allDone && !wasAllDone.current) {
+      setCelebrate(true);
+      wasAllDone.current = true;
+      const t = setTimeout(() => setCelebrate(false), 3500);
+      return () => clearTimeout(t);
+    }
+    if (!allDone) wasAllDone.current = false;
+  }, [allDone]);
 
-  // SVG circle progress
-  const SIZE = 96;
-  const STROKE = 8;
-  const RADIUS = (SIZE - STROKE) / 2;
-  const CIRC = 2 * Math.PI * RADIUS;
-  const offset = CIRC - progress * CIRC;
+  // Bump streak when changes
+  const [streakBump, setStreakBump] = useState(false);
+  const prevStreak = useRef(bestStreak);
+  useEffect(() => {
+    if (bestStreak > prevStreak.current) {
+      setStreakBump(true);
+      const t = setTimeout(() => setStreakBump(false), 700);
+      return () => clearTimeout(t);
+    }
+    prevStreak.current = bestStreak;
+  }, [bestStreak]);
+
+  const { label: greetingLabel, Icon: GreetingIcon } = timeOfDay();
+  const userName = user?.name?.split(" ")[0] ?? "amigo";
 
   return (
-    <div className="space-y-8">
-      {/* Greeting */}
-      <div className="flex items-center gap-3">
-        <GreetingIcon className="h-5 w-5 text-muted-foreground" />
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{greetingText}</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {new Date().toLocaleDateString("es", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-            })}
-          </p>
-        </div>
-      </div>
+    <>
+      <Confetti show={celebrate} />
 
-      {/* Hero progress */}
-      {!isLoading && total > 0 && (
-        <div
-          className={cnHero(allDone)}
-        >
-          {/* Ring progress */}
-          <div className="relative shrink-0">
-            <svg width={SIZE} height={SIZE} className="-rotate-90">
-              <circle
-                cx={SIZE / 2}
-                cy={SIZE / 2}
-                r={RADIUS}
-                stroke="currentColor"
-                strokeWidth={STROKE}
-                fill="none"
-                className="text-muted/40"
-              />
-              <circle
-                cx={SIZE / 2}
-                cy={SIZE / 2}
-                r={RADIUS}
-                stroke="currentColor"
-                strokeWidth={STROKE}
-                strokeLinecap="round"
-                fill="none"
-                strokeDasharray={CIRC}
-                strokeDashoffset={offset}
-                className="text-primary transition-all duration-700 ease-out"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-bold tabular-nums leading-none">
-                {completedCount}
-              </span>
-              <span className="text-xs text-muted-foreground leading-none mt-0.5">
-                / {total}
-              </span>
+      <div className="space-y-6">
+        {/* Hero — garden card */}
+        <div className="relative overflow-hidden rounded-[2rem] border-2 border-primary/15 bg-gradient-to-br from-primary/[0.05] via-background to-accent/[0.04] p-6 shadow-soft">
+          {/* Decorative leaves background */}
+          <div className="pointer-events-none absolute -right-8 -top-8 h-44 w-44 rounded-full bg-primary/8 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-12 -left-8 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
+
+          <div className="relative flex items-start gap-5">
+            {/* Mascot */}
+            {isLoading ? (
+              <Skeleton className="h-32 w-32 rounded-3xl shrink-0" />
+            ) : (
+              <div className="shrink-0">
+                <SproutMascot streak={bestStreak} className="h-32 w-32" />
+              </div>
+            )}
+
+            {/* Greeting + streak */}
+            <div className="min-w-0 flex-1 space-y-3 pt-1">
+              <div className="flex items-center gap-2">
+                <GreetingIcon className="h-4 w-4 text-accent-shadow" />
+                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  {greetingLabel}
+                </span>
+              </div>
+
+              <h1 className="font-display text-2xl font-black leading-tight text-foreground">
+                {isLoading ? <Skeleton className="h-7 w-48" /> : plantStageMsg(bestStreak, userName)}
+              </h1>
+
+              {/* Streak pill — big and proud */}
+              {!isLoading && (
+                <div className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1.5 shadow-press-accent">
+                  <Flame className="h-5 w-5 text-accent-foreground" strokeWidth={2.5} fill="currentColor" />
+                  <span
+                    className={`font-display text-xl font-black tabular-nums text-accent-foreground ${
+                      streakBump ? "animate-streak-bump" : ""
+                    }`}
+                  >
+                    {bestStreak}
+                  </span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-accent-foreground/80">
+                    {bestStreak === 1 ? "día" : "días"} de racha
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Message + streak */}
-          <div className="min-w-0 flex-1 space-y-2">
-            <p className="text-sm font-semibold leading-tight">
-              {contextualMessage(completedCount, total)}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {Math.round(progress * 100)}% completado hoy
-            </p>
-            {bestStreak > 0 && (
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-500/10 px-2 py-0.5">
-                <Flame className="h-3 w-3 text-orange-500" />
-                <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">
-                  Tu mejor racha: {bestStreak} {bestStreak === 1 ? "día" : "días"}
+          {/* Progress strip at bottom */}
+          {!isLoading && total > 0 && (
+            <div className="relative mt-6 space-y-2">
+              <div className="flex items-baseline justify-between">
+                <span className="font-display text-sm font-bold text-foreground">
+                  {progressMsg(completedCount, total)}
+                </span>
+                <span className="font-display text-sm font-black tabular-nums text-primary">
+                  {completedCount}<span className="text-muted-foreground">/{total}</span>
                 </span>
               </div>
-            )}
-          </div>
+              <div className="relative h-3 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-all duration-700 ease-out"
+                  style={{ width: `${(completedCount / total) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Loading skeleton */}
-      {isLoading && (
-        <div className="space-y-3">
-          <Skeleton className="h-28 w-full rounded-2xl" />
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-[68px] w-full rounded-xl" />
-          ))}
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!isLoading && total === 0 && <EmptyHabits />}
-
-      {/* Good habits */}
-      {!isLoading && good.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Hábitos a cultivar
-          </h2>
-          <div className="space-y-2">
-            {good.map((h) => (
-              <HabitRow key={h.id} habit={h} date={date} />
+        {/* Loading skeleton */}
+        {isLoading && (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-[68px] w-full rounded-2xl" />
             ))}
           </div>
-        </section>
-      )}
+        )}
 
-      {/* Bad habits (to avoid) */}
-      {!isLoading && bad.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Hábitos a evitar
-          </h2>
-          <div className="space-y-2">
-            {bad.map((h) => (
-              <HabitRow key={h.id} habit={h} date={date} />
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
+        {/* Empty state */}
+        {!isLoading && total === 0 && <EmptyHabits />}
+
+        {/* Good habits */}
+        {!isLoading && good.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="font-display text-xs font-black uppercase tracking-widest text-primary">
+              🌱 A cultivar
+            </h2>
+            <div className="space-y-2">
+              {good.map((h) => (
+                <HabitRow key={h.id} habit={h} date={date} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Bad habits */}
+        {!isLoading && bad.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="font-display text-xs font-black uppercase tracking-widest text-destructive">
+              🚫 A evitar
+            </h2>
+            <div className="space-y-2">
+              {bad.map((h) => (
+                <HabitRow key={h.id} habit={h} date={date} />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </>
   );
-}
-
-function cnHero(allDone: boolean) {
-  const base = "flex items-center gap-5 rounded-2xl border p-5 transition-colors";
-  return allDone
-    ? `${base} border-primary/30 bg-primary/5`
-    : `${base} bg-card`;
 }

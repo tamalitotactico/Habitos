@@ -46,6 +46,43 @@
     100% { opacity: 0; transform: translateY(-24px) scale(0.9); }
   }
   .animate-streak-float { animation: streak-float 900ms ease-out; }
+
+  /* Sprout sway — gentle organic motion */
+  @keyframes sprout-sway {
+    0%, 100% { transform: rotate(-2deg); }
+    50%      { transform: rotate(2deg); }
+  }
+  .animate-sprout-sway { animation: sprout-sway 4s ease-in-out infinite; transform-origin: bottom center; }
+
+  /* Sprout grow-in (mounted) */
+  @keyframes sprout-grow {
+    0%   { transform: scale(0.6) translateY(20%); opacity: 0; }
+    60%  { transform: scale(1.08) translateY(-2%); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .animate-sprout-grow { animation: sprout-grow 800ms cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: bottom center; }
+
+  /* Confetti pieces falling/rotating */
+  @keyframes confetti-fall {
+    0%   { transform: translate3d(0, -20px, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate3d(var(--confetti-x, 0), 100vh, 0) rotate(720deg); opacity: 0; }
+  }
+  .animate-confetti { animation: confetti-fall var(--confetti-duration, 2s) ease-in forwards; }
+
+  /* Button press depth — Duolingo-style. Apply with .btn-press */
+  .btn-press {
+    box-shadow: var(--shadow-press);
+    transition: transform 80ms ease, box-shadow 80ms ease;
+  }
+  .btn-press:hover { transform: translateY(-1px); box-shadow: 0 5px 0 0 var(--primary-shadow); }
+  .btn-press:active { transform: translateY(4px); box-shadow: 0 0 0 0 var(--primary-shadow); }
+
+  /* Streak number countdown bounce */
+  @keyframes streak-bump {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.18); }
+  }
+  .animate-streak-bump { animation: streak-bump 600ms cubic-bezier(0.34, 1.56, 0.64, 1); }
 }
 
 @layer base {
@@ -54,30 +91,42 @@
     --font-sans: var(--font-sans);
   }
   :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
+    /* Warm botanical palette — sage primary, amber accent, cream surfaces */
+    --background: oklch(0.985 0.008 85);
+    --foreground: oklch(0.22 0.025 145);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    --card-foreground: oklch(0.22 0.025 145);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --popover-foreground: oklch(0.22 0.025 145);
+    --primary: oklch(0.52 0.115 152);
+    --primary-foreground: oklch(0.99 0.005 85);
+    --primary-shadow: oklch(0.40 0.105 152);
+    --secondary: oklch(0.95 0.014 85);
+    --secondary-foreground: oklch(0.30 0.035 145);
+    --muted: oklch(0.95 0.012 85);
+    --muted-foreground: oklch(0.48 0.018 145);
+    --accent: oklch(0.78 0.155 70);
+    --accent-foreground: oklch(0.28 0.08 50);
+    --accent-shadow: oklch(0.62 0.140 65);
+    --destructive: oklch(0.60 0.195 28);
+    --destructive-shadow: oklch(0.46 0.18 28);
+    --success: oklch(0.62 0.13 152);
+    --warning: oklch(0.78 0.155 70);
+    --border: oklch(0.90 0.018 85);
+    --input: oklch(0.90 0.018 85);
+    --ring: oklch(0.52 0.115 152);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
+    --radius: 1rem;
+    /* Duolingo-style press-depth shadows */
+    --shadow-press: 0 4px 0 0 var(--primary-shadow);
+    --shadow-press-accent: 0 4px 0 0 var(--accent-shadow);
+    --shadow-press-destructive: 0 4px 0 0 var(--destructive-shadow);
+    --shadow-soft: 0 1px 2px 0 oklch(0.22 0.025 145 / 0.04), 0 2px 8px -2px oklch(0.22 0.025 145 / 0.08);
+    --shadow-lift: 0 4px 16px -4px oklch(0.22 0.025 145 / 0.12);
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.205 0 0);
