@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "motion/react";
 import { Flame, Sunrise, Sun, Moon, Trophy, Snowflake } from "lucide-react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,6 +9,7 @@ import { HabitRow } from "@/components/habits/HabitRow";
 import { EmptyHabits } from "@/components/habits/EmptyHabits";
 import { SproutMascot } from "@/components/SproutMascot";
 import { Confetti } from "@/components/Confetti";
+import { ParticleBackground } from "@/components/ParticleBackground";
 import { XPBar } from "@/components/gamification/XPBar";
 import { LevelBadge } from "@/components/gamification/LevelBadge";
 import { MissionsPanel } from "@/components/gamification/MissionsPanel";
@@ -15,6 +17,12 @@ import { MotivationMessage, pickMood } from "@/components/MotivationMessage";
 import { useToday } from "@/lib/hooks/useHabits";
 import { useStats } from "@/lib/hooks/useGamification";
 import { useAuthStore } from "@/stores/auth.store";
+
+const fadeUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: "easeOut" as const },
+};
 
 function todayStr() {
   return new Date().toISOString().split("T")[0];
@@ -97,9 +105,15 @@ export default function DashboardPage() {
 
       <div className="space-y-6">
         {/* Hero — garden card with gamification */}
-        <div className="relative overflow-hidden rounded-[2rem] border-2 border-primary/15 bg-gradient-to-br from-primary/[0.06] via-background to-accent/[0.05] p-6 shadow-soft">
+        <motion.div
+          {...fadeUp}
+          className="relative overflow-hidden rounded-[2rem] border-2 border-primary/15 bg-gradient-to-br from-primary/[0.06] via-background to-accent/[0.05] p-6 shadow-soft"
+        >
           <div className="pointer-events-none absolute -right-8 -top-8 h-44 w-44 rounded-full bg-primary/8 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-12 -left-8 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
+
+          {/* Ambient floating particles */}
+          <ParticleBackground className="pointer-events-none absolute inset-0" />
 
           {/* Top row: mascot + greeting + level */}
           <div className="relative flex items-start gap-5">
@@ -198,7 +212,7 @@ export default function DashboardPage() {
               Ver mis logros
             </Link>
           )}
-        </div>
+        </motion.div>
 
         {/* Loading skeleton */}
         {isLoading && (
@@ -213,14 +227,20 @@ export default function DashboardPage() {
 
         {/* Emotional motivation strip */}
         {!isLoading && total > 0 && (
-          <MotivationMessage mood={pickMood({ completed: completedCount, total, streak: bestStreak })} />
+          <motion.div {...fadeUp} transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}>
+            <MotivationMessage mood={pickMood({ completed: completedCount, total, streak: bestStreak })} />
+          </motion.div>
         )}
 
         {/* Missions / Challenges */}
-        {!isLoading && total > 0 && <MissionsPanel />}
+        {!isLoading && total > 0 && (
+          <motion.div {...fadeUp} transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}>
+            <MissionsPanel />
+          </motion.div>
+        )}
 
         {!isLoading && good.length > 0 && (
-          <section className="space-y-3">
+          <motion.section {...fadeUp} transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }} className="space-y-3">
             <h2 className="font-display text-xs font-black uppercase tracking-widest text-primary">
               🌱 A cultivar
             </h2>
@@ -229,11 +249,11 @@ export default function DashboardPage() {
                 <HabitRow key={h.id} habit={h} date={date} />
               ))}
             </div>
-          </section>
+          </motion.section>
         )}
 
         {!isLoading && bad.length > 0 && (
-          <section className="space-y-3">
+          <motion.section {...fadeUp} transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }} className="space-y-3">
             <h2 className="font-display text-xs font-black uppercase tracking-widest text-warning">
               💪 A superar
             </h2>
@@ -242,7 +262,7 @@ export default function DashboardPage() {
                 <HabitRow key={h.id} habit={h} date={date} />
               ))}
             </div>
-          </section>
+          </motion.section>
         )}
       </div>
     </>

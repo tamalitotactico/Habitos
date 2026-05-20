@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Check, Flame, Clock, Shield, Sprout, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -75,30 +76,57 @@ export function HabitRow({ habit, date }: Props) {
         isCompleted ? tokens.completedBorder : `${tokens.baseBorder} hover:-translate-y-px hover:shadow-soft ${tokens.hoverBorder}`
       )}
     >
-      {/* Checkbox button with press-depth + animations */}
-      <button
+      {/* Checkbox button with spring animation */}
+      <motion.button
         onClick={toggle}
         disabled={upsert.isPending}
         aria-label={isCompleted ? "Desmarcar" : "Marcar como hecho"}
+        animate={justCompleted ? { scale: [1, 1.35, 0.92, 1] } : { scale: 1 }}
+        transition={{ duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}
+        whileTap={{ scale: 0.92 }}
         className={cn(
-          "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-100",
-          isCompleted ? tokens.checkboxDone : tokens.checkboxIdle,
-          justCompleted && "animate-habit-pop"
+          "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+          isCompleted ? tokens.checkboxDone : tokens.checkboxIdle
         )}
       >
-        {justCompleted && (
-          <span className="pointer-events-none absolute inset-0 rounded-full animate-ring-pulse" />
+        {/* Ring pulse on complete */}
+        <AnimatePresence>
+          {justCompleted && (
+            <motion.span
+              initial={{ scale: 1, opacity: 0.5, boxShadow: "0 0 0 0 var(--primary)" }}
+              animate={{ scale: 1.6, opacity: 0, boxShadow: "0 0 0 14px var(--primary)" }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="pointer-events-none absolute inset-0 rounded-full"
+            />
+          )}
+        </AnimatePresence>
+        {isCompleted && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+          >
+            <Check className="h-5 w-5" strokeWidth={3.5} />
+          </motion.span>
         )}
-        {isCompleted && <Check className="h-5 w-5" strokeWidth={3.5} />}
-      </button>
+      </motion.button>
 
       {/* Floating +XP indicator */}
-      {justCompleted && (
-        <span className="pointer-events-none absolute left-9 top-2 flex items-center gap-0.5 text-xs font-black text-accent-shadow animate-streak-float">
-          <Zap className="h-3 w-3 fill-current" />
-          {tokens.xpAmount}
-        </span>
-      )}
+      <AnimatePresence>
+        {justCompleted && (
+          <motion.span
+            initial={{ opacity: 0, y: 0, scale: 0.8 }}
+            animate={{ opacity: 1, y: -24, scale: 1 }}
+            exit={{ opacity: 0, y: -32 }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            className="pointer-events-none absolute left-9 top-2 flex items-center gap-0.5 text-xs font-black text-accent-shadow"
+          >
+            <Zap className="h-3 w-3 fill-current" />
+            {tokens.xpAmount}
+          </motion.span>
+        )}
+      </AnimatePresence>
 
       {/* Info */}
       <div className="min-w-0 flex-1">
